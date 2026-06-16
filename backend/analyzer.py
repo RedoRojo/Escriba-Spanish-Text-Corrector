@@ -3,6 +3,7 @@ import json
 from google import genai
 from google.genai import types
 
+from pydantic import ValidationError
 from .exceptions import LLMEmptyError, LLMResponseError
 from .schemas import AnalyzeRequest, AnalyzeResponse
 
@@ -43,4 +44,8 @@ def analyze_text(
     except json.JSONDecodeError as e:
         raise LLMResponseError(
             "Failed to parse Gemini response as JSON.", raw[:500]
+        ) from e
+    except ValidationError as e:
+        raise LLMResponseError(
+            f"Failed to validate Gemini response schema: {e}", raw[:500]
         ) from e

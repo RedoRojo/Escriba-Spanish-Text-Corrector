@@ -33,123 +33,11 @@
       }
     }
   </script>
-  <style>
-    *, *::before, *::after { box-sizing: border-box; }
-
-    body {
-      font-family: 'Inter', system-ui, sans-serif;
-      background: #F7F5F0;
-      color: #1C1917;
-      -webkit-font-smoothing: antialiased;
-    }
-
-    .text-display { font-family: '"DM Serif Display"', serif; }
-
-    .error-highlight {
-      background: #FEF2F2;
-      color: #DC2626;
-      border-bottom: 2px solid #DC2626;
-      cursor: pointer;
-      border-radius: 2px;
-      padding: 1px 0;
-      transition: background 0.15s;
-      position: relative;
-    }
-    .error-highlight:hover {
-      background: #FEE2E2;
-    }
-    .error-highlight.active {
-      background: #FEE2E2;
-      box-shadow: 0 0 0 2px rgba(220, 38, 38, 0.3);
-    }
-    .error-highlight.accepted {
-      background: #ECFDF5;
-      color: #059669;
-      border-bottom-color: #059669;
-    }
-    .error-highlight.ignored {
-      background: transparent;
-      color: inherit;
-      border-bottom-color: #D1D5DB;
-      cursor: default;
-    }
-
-    #error-popover {
-      position: absolute;
-      z-index: 50;
-      background: #fff;
-      border: 1px solid #E5E7EB;
-      border-radius: 10px;
-      box-shadow: 0 8px 30px rgba(0,0,0,0.10);
-      padding: 16px;
-      width: 340px;
-      font-size: 0.875rem;
-      display: none;
-      top: 0;
-      left: 0;
-    }
-    #error-popover.show { display: block; }
-
-    #error-popover::before {
-      content: '';
-      position: absolute;
-      top: -6px;
-      left: 24px;
-      width: 10px;
-      height: 10px;
-      background: #fff;
-      border-left: 1px solid #E5E7EB;
-      border-top: 1px solid #E5E7EB;
-      transform: rotate(45deg);
-    }
-
-    .popover-line {
-      position: absolute;
-      background: #7C3AED;
-      width: 2px;
-      transition: top 0.2s, height 0.2s;
-    }
-
-    .btn-primary {
-      background: #7C3AED;
-      color: #fff;
-      border: none;
-      padding: 6px 14px;
-      border-radius: 6px;
-      font-size: 0.8125rem;
-      font-weight: 500;
-      cursor: pointer;
-      transition: background 0.15s;
-    }
-    .btn-primary:hover { background: #6D28D9; }
-    .btn-ghost {
-      background: transparent;
-      color: #6B7280;
-      border: 1px solid #E5E7EB;
-      padding: 6px 14px;
-      border-radius: 6px;
-      font-size: 0.8125rem;
-      font-weight: 500;
-      cursor: pointer;
-      transition: all 0.15s;
-    }
-    .btn-ghost:hover { background: #F9FAFB; color: #1C1917; }
-
-    .btn-primary:disabled, .btn-ghost:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
-
-    .fade-in { animation: fadeIn 0.2s ease-out; }
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
-
-    @media (max-width: 640px) {
-      #error-popover { width: calc(100vw - 32px); left: 16px !important; }
-    }
-  </style>
+  <link rel="stylesheet" href="index.css" />
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✎</text></svg>" />
 </head>
 <body class="min-h-screen flex flex-col">
+  <a href="#main-content" class="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-50 focus:bg-white focus:px-4 focus:py-2 focus:rounded-lg focus:shadow-lg focus:outline-2 focus:outline-purple-600">Saltar al contenido principal</a>
 
   <header class="border-b border-rule bg-white">
     <div class="max-w-3xl mx-auto px-5 py-6">
@@ -158,20 +46,21 @@
     </div>
   </header>
 
-  <main class="flex-1 max-w-3xl mx-auto w-full px-5 py-8 space-y-6">
+  <main id="main-content" class="flex-1 max-w-3xl mx-auto w-full px-5 py-8 space-y-6">
 
     <!-- Input section -->
     <section id="input-section" class="bg-white rounded-xl border border-rule p-5">
       <label for="text-input" class="block text-sm font-medium text-ink mb-2">Texto a analizar</label>
       <textarea
         id="text-input"
+        name="text-input"
         rows="6"
-        class="w-full border border-rule rounded-lg p-4 text-sm leading-relaxed font-body resize-y outline-none focus:border-accent focus:ring-1 focus:ring-accent transition"
-        placeholder="Escribe o pega aquí tu texto en español..."
+        class="w-full border border-rule rounded-lg p-4 text-sm leading-relaxed font-body resize-y focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-purple-600 focus:border-accent focus:ring-1 focus:ring-accent transition"
+        placeholder="Escribe o pega aquí tu texto en español…"
       ></textarea>
       <div class="flex items-center justify-between mt-2.5">
         <span id="counter" class="text-xs text-ink-fade">0 caracteres</span>
-        <span id="error-message" class="text-xs text-error hidden"></span>
+        <span id="error-message" class="text-xs text-error hidden" aria-live="polite"></span>
       </div>
       <button
         id="analyze-btn"
@@ -182,7 +71,7 @@
     </section>
 
     <!-- Loading -->
-    <div id="loading" class="hidden text-center py-12">
+    <div id="loading" class="hidden text-center py-12" aria-live="polite">
       <div class="inline-block w-7 h-7 border-2 border-ink-fade border-t-ink rounded-full animate-spin"></div>
       <p class="text-ink-fade text-sm mt-3">Analizando texto…</p>
     </div>

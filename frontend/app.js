@@ -32,6 +32,7 @@ let errorStates = [];       // { status: 'pending'|'accepted'|'ignored', error }
 let errorPositions = [];    // { start, end, index }
 let activeErrorIndex = -1;
 
+
 function labelFor(type) {
   return (errorTypeRegistry[type] && errorTypeRegistry[type].label) || type;
 }
@@ -118,6 +119,7 @@ async function handleAnalyze() {
     errors = data.errors;
     errorStates = errors.map((e) => ({ status: 'pending', error: e }));
     errorPositions = locateErrors(text, errors);
+    errorPositions.sort((a, b) => a.start - b.start);
     activeErrorIndex = -1;
 
     if (errors.length === 0) {
@@ -133,7 +135,11 @@ async function handleAnalyze() {
     resultsSection.classList.remove('hidden');
     emptyState.classList.add('hidden');
   } catch (err) {
-    showError('Error al analizar. Verifica que el servidor esté corriendo.');
+    const isNetworkError = err instanceof TypeError || err.message?.includes('Failed to fetch') || err.message?.includes('NetworkError');
+    const msg = isNetworkError 
+      ? 'Error al analizar. Verifica que el servidor esté corriendo.' 
+      : (err.message || 'Error al analizar.');
+    showError(msg);
   } finally {
     setLoading(false);
   }
@@ -149,10 +155,17 @@ function setLoading(on) {
 function locateErrors(text, errs) {
   const occupied = new Set();
   const positions = [];
+  let lastIndex = 0;
   for (let i = 0; i < errs.length; i++) {
     const orig = errs[i].original;
-    let searchFrom = 0;
+    if (!orig) {
+      positions.push({ start: 0, end: 0, index: i });
+      continue;
+    }
     let found = -1;
+
+    // First try searching from lastIndex to handle sequential duplicate words
+    let searchFrom = lastIndex;
     while (true) {
       const idx = text.indexOf(orig, searchFrom);
       if (idx === -1) break;
@@ -164,9 +177,27 @@ function locateErrors(text, errs) {
       if (!overlap) { found = idx; break; }
       searchFrom = idx + 1;
     }
+
+    // Fallback to searching from 0 if not found sequentially
+    if (found === -1 && lastIndex > 0) {
+      searchFrom = 0;
+      while (true) {
+        const idx = text.indexOf(orig, searchFrom);
+        if (idx === -1 || idx >= lastIndex) break;
+        const end = idx + orig.length;
+        let overlap = false;
+        for (let p = idx; p < end; p++) {
+          if (occupied.has(p)) { overlap = true; break; }
+        }
+        if (!overlap) { found = idx; break; }
+        searchFrom = idx + 1;
+      }
+    }
+
     if (found !== -1) {
       for (let p = found; p < found + orig.length; p++) occupied.add(p);
       positions.push({ start: found, end: found + orig.length, index: i });
+      lastIndex = found + orig.length;
     } else {
       const fallback = text.indexOf(orig);
       if (fallback !== -1) {
@@ -312,12 +343,32 @@ function checkAllResolved() {
     }
     finalText.textContent = result;
     finalSection.classList.remove('hidden');
-    finalSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    finalSection.scrollIntoView({ behavior: prefersReduced ? 'auto' : 'smooth', block: 'start' });
   }
 }
 
 /* ── Copy ── */
 function handleCopy() {
+  if (!navigator.clipboard || !navigator.clipboard.writeText) {
+    const textArea = document.createElement("textarea");
+    textArea.value = finalText.textContent;
+    textArea.style.position = "fixed";
+    document.body.appendChild(textArea);
+    textArea.focus();
+    textArea.select();
+    try {
+      document.execCommand('copy');
+      const orig = copyBtn.textContent;
+      copyBtn.textContent = '¡Copiado!';
+      setTimeout(() => { copyBtn.textContent = 'Copiar'; }, 2000);
+    } catch (err) {
+      alert('No se pudo copiar el texto automáticamente. Por favor, selecciónalo y cópialo manualmente.');
+    }
+    document.body.removeChild(textArea);
+    return;
+  }
+
   navigator.clipboard.writeText(finalText.textContent).then(() => {
     const orig = copyBtn.textContent;
     copyBtn.textContent = '¡Copiado!';

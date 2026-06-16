@@ -1,0 +1,115 @@
+*, *::before, *::after { box-sizing: border-box; }
+
+body {
+  font-family: 'Inter', system-ui, sans-serif;
+  background: #F7F5F0;
+  color: #1C1917;
+  -webkit-font-smoothing: antialiased;
+}
+
+.text-display { font-family: '"DM Serif Display"', serif; }
+
+.error-highlight {
+  background: #FEF2F2;
+  color: #DC2626;
+  border-bottom: 2px solid #DC2626;
+  cursor: pointer;
+  border-radius: 2px;
+  padding: 1px 0;
+  transition: background 0.15s;
+  position: relative;
+}
+.error-highlight:hover {
+  background: #FEE2E2;
+}
+.error-highlight.active {
+  background: #FEE2E2;
+  box-shadow: 0 0 0 2px rgba(220, 38, 38, 0.3);
+}
+.error-highlight.accepted {
+  background: #ECFDF5;
+  color: #059669;
+  border-bottom-color: #059669;
+}
+.error-highlight.ignored {
+  background: transparent;
+  color: inherit;
+  border-bottom-color: #D1D5DB;
+  cursor: default;
+}
+
+#error-popover {
+  position: absolute;
+  z-index: 50;
+  background: #fff;
+  border: 1px solid #E5E7EB;
+  border-radius: 10px;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.10);
+  padding: 16px;
+  width: 340px;
+  font-size: 0.875rem;
+  display: none;
+  top: 0;
+  left: 0;
+}
+#error-popover.show { display: block; }
+
+#error-popover::before {
+  content: '';
+  position: absolute;
+  top: -6px;
+  left: 24px;
+  width: 10px;
+  height: 10px;
+  background: #fff;
+  border-left: 1px solid #E5E7EB;
+  border-top: 1px solid #E5E7EB;
+  transform: rotate(45deg);
+}
+
+.popover-line {
+  position: absolute;
+  background: #7C3AED;
+  width: 2px;
+  transition: top 0.2s, height 0.2s;
+}
+
+.btn-primary {
+  background: #7C3AED;
+  color: #fff;
+  border: none;
+  padding: 6px 14px;
+  border-radius: 6px;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.btn-primary:hover { background: #6D28D9; }
+.btn-ghost {
+  background: transparent;
+  color: #6B7280;
+  border: 1px solid #E5E7EB;
+  padding: 6px 14px;
+  border-radius: 6px;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+.btn-ghost:hover { background: #F9FAFB; color: #1C1917; }
+
+.btn-primary:disabled, .btn-ghost:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.fade-in { animation: fadeIn 0.2s ease-out; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+@media (prefers-reduced-motion: reduce) {
+  .fade-in { animation: none; }
+}
+
+@media (max-width: 640px) {
+  #error-popover { width: calc(100vw - 32px); left: 16px !important; }
+}
