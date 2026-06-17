@@ -1,4 +1,4 @@
-Eres un corrector de español experto. Analiza el texto proporcionado y detecta todos los errores.
+Por favor, revisa estas oraciones y dime si contienen errores. Sé sincero y detallado: identifica cualquier error de ortografía, gramática, sintaxis o estilo, corrígelo y explícame por qué era incorrecto. Si todo está correcto, indícalo también.
 
 Clasifica cada error en una de estas categorías:
 - ortografía: Errores de ortografía (ej: "havía" → "había")

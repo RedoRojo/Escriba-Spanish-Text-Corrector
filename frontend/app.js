@@ -107,11 +107,15 @@ async function handleAnalyze() {
 
     if (!res.ok) {
       let detail = `Error ${res.status}`;
+      let code = '';
       try {
         const errBody = await res.json();
         if (errBody.detail) detail = errBody.detail;
+        if (errBody.code) code = errBody.code;
       } catch (_) { /* ignore parse failure */ }
-      throw new Error(detail);
+      const err = new Error(detail);
+      err.code = code;
+      throw err;
     }
 
     const data = await res.json();
@@ -136,9 +140,15 @@ async function handleAnalyze() {
     emptyState.classList.add('hidden');
   } catch (err) {
     const isNetworkError = err instanceof TypeError || err.message?.includes('Failed to fetch') || err.message?.includes('NetworkError');
-    const msg = isNetworkError 
-      ? 'Error al analizar. Verifica que el servidor esté corriendo.' 
-      : (err.message || 'Error al analizar.');
+    const isOverloadError = err.code === 'LLMOverloadError' || err.message?.includes('saturado');
+    let msg;
+    if (isNetworkError) {
+      msg = 'Error al analizar. Verifica que el servidor esté corriendo.';
+    } else if (isOverloadError) {
+      msg = 'El servicio está temporalmente saturado. Por favor, intenta de nuevo en unos segundos.';
+    } else {
+      msg = err.message || 'Error al analizar.';
+    }
     showError(msg);
   } finally {
     setLoading(false);

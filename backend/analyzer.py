@@ -1,11 +1,16 @@
 import json
+import random
+import time
 
 from google import genai
 from google.genai import types
 
 from pydantic import ValidationError
-from .exceptions import LLMEmptyError, LLMResponseError
+from .exceptions import LLMEmptyError, LLMOverloadError, LLMResponseError
 from .schemas import AnalyzeRequest, AnalyzeResponse
+
+MAX_RETRIES = 3
+BASE_DELAY = 1.0
 
 
 def analyze_text(
@@ -13,22 +18,33 @@ def analyze_text(
     *,
     client: genai.Client,
     prompt: str,
-    model: str = "gemini-2.5-flash",
+    model: str = "gemini-3.5-flash",
 ) -> AnalyzeResponse:
-    try:
-        response = client.models.generate_content(
-            model=model,
-            contents=request.text,
-            config=types.GenerateContentConfig(
-                system_instruction=prompt,
-                response_mime_type="application/json",
-            ),
-        )
-    except Exception as e:
-        status = getattr(e, "code", None) or getattr(e, "status_code", None)
-        raise LLMResponseError(
-            f"Gemini API error (HTTP {status}): {e}"
-        ) from e
+    for attempt in range(MAX_RETRIES + 1):
+        try:
+            response = client.models.generate_content(
+                model=model,
+                contents=request.text,
+                config=types.GenerateContentConfig(
+                    system_instruction=prompt,
+                    response_mime_type="application/json",
+                ),
+            )
+            break
+        except Exception as e:
+            status = getattr(e, "code", None) or getattr(e, "status_code", None)
+            is_unavailable = status == 503 or "UNAVAILABLE" in str(e)
+            if is_unavailable and attempt < MAX_RETRIES:
+                delay = BASE_DELAY * (2 ** attempt) + random.uniform(0, 0.5)
+                time.sleep(delay)
+                continue
+            if is_unavailable:
+                raise LLMOverloadError(
+                    "El servicio de análisis está temporalmente saturado. Inténtalo de nuevo en unos segundos."
+                ) from e
+            raise LLMResponseError(
+                f"Gemini API error (HTTP {status}): {e}"
+            ) from e
 
     raw = response.text
     if not raw:

@@ -16,3 +16,7 @@ class LLMResponseError(AnalysisError):
     def __init__(self, message: str, raw: str = "") -> None:
         super().__init__(message)
         self.raw = raw
+
+
+class LLMOverloadError(AnalysisError):
+    """LLM is overloaded (HTTP 503) after retries."""

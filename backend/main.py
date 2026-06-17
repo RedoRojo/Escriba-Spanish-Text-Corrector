@@ -12,7 +12,7 @@ from slowapi.util import get_remote_address
 
 from .analyzer import analyze_text
 from .error_types import ALL_TYPES, ERROR_COLORS, ERROR_LABELS
-from .exceptions import AnalysisError, ConfigError, LLMEmptyError, LLMResponseError
+from .exceptions import AnalysisError, ConfigError, LLMEmptyError, LLMOverloadError, LLMResponseError
 from .schemas import AnalyzeRequest, AnalyzeResponse, ErrorTypeInfo, ErrorTypesResponse
 
 load_dotenv()
@@ -47,6 +47,8 @@ app.add_middleware(
 def handle_analysis_error(request: Request, exc: AnalysisError) -> JSONResponse:
     if isinstance(exc, LLMEmptyError):
         status = 502
+    elif isinstance(exc, LLMOverloadError):
+        status = 503
     elif isinstance(exc, LLMResponseError):
         status = 502
     else:
