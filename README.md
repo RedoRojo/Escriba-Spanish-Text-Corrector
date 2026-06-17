@@ -2,6 +2,35 @@
 
 A focused web tool that analyzes Spanish articles and essays, detects errors (spelling, grammar, punctuation, semantics, style), and returns a detailed report per mistake. Built as a portfolio project.
 
+This project is inspired by the research paper:
+* **"Imperfect Language, Artificial Intelligence, and the Human Mind: An Interdisciplinary Approach to Linguistic Errors in Native Spanish Speakers"** by Francisco Portillo López (arXiv:2511.01615).
+* You can read the paper at [https://arxiv.org/pdf/2511.01615](https://arxiv.org/pdf/2511.01615).
+
+## How it Works
+
+1. **Text Submission**: The user pastes a Spanish text (20–5000 characters) into the frontend text area.
+2. **Analysis Request**: The frontend makes a `POST /analyze` request to the FastAPI backend.
+3. **LLM Evaluation**: The backend loads the system prompt from `prompts/system_prompt.txt` and calls the Gemini 2.5 Flash model via the `google-genai` SDK.
+4. **Structured Response**: The model returns a structured JSON payload containing:
+   - A list of error items (original text, suggested correction, category, and explanation).
+   - A fully corrected version of the text.
+   - Summary statistics (error counts broken down by category).
+5. **Interactive UI**: The frontend highlights the flagged errors in-line. The user can click each highlighted error to view a popover detailing the correction and explanation, deciding whether to *Accept* or *Ignore* each individual correction.
+6. **Final Draft**: Once all errors have been resolved, the final text block is updated and can be copied to the clipboard.
+
+## System Prompt Origin
+
+The categorization methodology and error types configured in our system prompt ([prompts/system_prompt.txt](file:///home/redo/Documents/projects/escriba/prompts/system_prompt.txt)) are directly derived from the classification framework described in the research paper cited above:
+
+The prompt instructs the Gemini model to evaluate native Spanish speaker deviations and group errors under five distinct categories:
+* `ortografía` (Spelling)
+* `gramática` (Grammar agreement & verb conjugation)
+* `puntuación` (Punctuation and diacritic marks)
+* `semántica` (Contextually incorrect vocabulary)
+* `estilo` (Style, redundancy, and awkward structure)
+
+---
+
 ## Tech Stack
 
 - **Backend:** Python + FastAPI
