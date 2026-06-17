@@ -1,0 +1,11 @@
+{
+  "name": "escriba-frontend",
+  "version": "1.0.0",
+  "description": "TypeScript frontend configuration",
+  "scripts": {
+    "build": "tsc"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.5"
+  }
+}
